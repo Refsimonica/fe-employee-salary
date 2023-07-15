@@ -49,6 +49,7 @@ const Detail = () => {
     let [isDetail, setIsDetail] = useState(false);
     let [isDetailData, setIsDetailData] = useState([]);
     let [isDetailAbsent, setIsDetailAbsent] = useState([]);
+    // console.log('karyawans', response.status);
 
     const handleClose = () => {
         setIsDetail(false);
@@ -168,7 +169,7 @@ const Detail = () => {
 
     return (
         <Fragment>
-            {/* <DetailAbsensi  show={isDetail} handleClose={handleClose} handleShow={handleShow} detail={isDetailData} absent={isDetailAbsent} user={user}></DetailAbsensi> */}
+            <DetailAbsensi  show={isDetail} handleClose={handleClose} handleShow={handleShow} detail={isDetailData} absent={isDetailAbsent} user={user}></DetailAbsensi>
             <div className='row'>
                 <div className='col-md-12 grid-margin stretch-card'>
                     {response.status === 'error' && <Toast property={'error'} text={response.message}></Toast>} 
@@ -232,8 +233,8 @@ const Detail = () => {
                                                         <Fragment key={index}>
                                                             {karyawans.length > 0 && karyawan.m_karyawan_id !== null && 
                                                             // <KaryawanList showDetail={(data)=> handleShow(data)} key={index} karyawan={karyawan} index={index} />
-                                                            // <tr onClick={() => showDetail(karyawan)} style={{cursor: 'pointer'}}>
-                                                            <tr style={{cursor: 'pointer'}}>
+                                                            <tr onClick={() => handleShow(karyawan)} style={{cursor: 'pointer'}}>
+                                                            {/* // <tr style={{cursor: 'pointer'}}> */}
                                                                 <td>
                                                                     <table>
                                                                         <tbody>

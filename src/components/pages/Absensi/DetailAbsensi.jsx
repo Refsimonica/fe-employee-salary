@@ -17,9 +17,12 @@ const DetailAbsensi = (props) => {
 
     const {show, handleClose, handleShow, detail, absent, user} = props;
     const [ presence, setPresence ] = useState([]);
-    const [status, setStatus] = useState('idle');
+    const [ status, setStatus ] = useState('idle');
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    console.log(absent);
+    const [ totalAbsent, setTotalAbsent] = useState(0);
+    const [ totalSick, setTotalSick] = useState(0);
+    const [ totalPermit, setTotalPermit] = useState(0);
+
     const absentStatus = (status) => {
         switch (status) {
             case 'attend':
@@ -50,11 +53,11 @@ const DetailAbsensi = (props) => {
         const index = absent.findIndex(function(abs) {
             return abs.Date === date
         });
+        const currentStatus = event.target.getAttribute('currentstatus');
         newAbsent[index].status = event.target.value;
         const token = user.token || '';
-        const result = await updateAbsentDetail({id: detail.id, absent: newAbsent, status: event.target.value}, token);
+        const result = await updateAbsentDetail({id: detail.id, absent: newAbsent, status: event.target.value, current_status: currentStatus}, token);
         if (result.status === 200) {
-            console.log(result.data);
             setPresence(result.data);
             setStatus('success');
         } else {
@@ -62,10 +65,37 @@ const DetailAbsensi = (props) => {
         }
     }
 
+    const countAbsent = () =>  {
+        if (presence.length > 0) {
+            setTotalAbsent(
+                presence.filter( function (pres) {
+                    console.log(pres.Date);
+                    return pres.status === 'absent';
+                }).length
+            )
+            setTotalSick(
+                presence.filter( function (pres) {
+                    console.log(pres.Date);
+                    return pres.status === 'sick';
+                }).length
+            )
+            setTotalPermit(
+                presence.filter( function (pres) {
+                    console.log(pres.Date);
+                    return pres.status === 'permit';
+                }).length
+            )
+        }
+        return [];
+    }
+
     React.useEffect(() => {
         setPresence(absent);
+        countAbsent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [absent, presence]);
 
+    // console.log('totalAbsent', new Date().getDay());
     return (
         <div>
             <MDBBtn onClick={handleShow}>Detail</MDBBtn>
@@ -73,7 +103,7 @@ const DetailAbsensi = (props) => {
                 <MDBModalDialog size="fullscreen">
                     <MDBModalContent>
                         <MDBModalHeader>
-                            <MDBModalTitle>Detail Absensi <b>{detail.length > 0 && detail[0].Name }</b></MDBModalTitle>
+                            <MDBModalTitle>Detail Absensi <b>{absent.length > 0 > 0 && absent[0].Name }</b></MDBModalTitle>
                             <MDBBtn className='btn-close' color='none' onClick={handleClose}></MDBBtn>
                         </MDBModalHeader>
                         <MDBModalBody>
@@ -119,6 +149,7 @@ const DetailAbsensi = (props) => {
                                                                         (dateFormatter(value.Date).getDay() === 6 || dateFormatter(value.Date).getDay() === 0) ? 'disabled' : ``
                                                                     }
                                                                     defaultChecked={value.status === 'attend' ? 'checked' : ''}
+                                                                    currentstatus={value.status}
                                                                     onChange={updateAbsentSalary}
                                                                     className="form-check-input" type="radio" name={`${index}-status`} id={`${index}-attend`} value={`attend`}/>
                                                                 <label className="form-check-label" htmlFor={`${index}-attend`}>Hadir</label>
@@ -129,6 +160,7 @@ const DetailAbsensi = (props) => {
                                                                         (dateFormatter(value.Date).getDay() === 6 || dateFormatter(value.Date).getDay() === 0) ? 'disabled' : ``
                                                                     } 
                                                                     defaultChecked={value.status === 'sick' ? 'checked' : ''}
+                                                                    currentstatus={value.status}
                                                                     className="form-check-input" type="radio" name={`${index}-status`} id={`${index}-sick`} value={`sick`}
                                                                     onChange={updateAbsentSalary}/>
                                                                 <label className="form-check-label" htmlFor={`${index}-sick`}>Sakit</label>
@@ -139,6 +171,7 @@ const DetailAbsensi = (props) => {
                                                                         (dateFormatter(value.Date).getDay() === 6 || dateFormatter(value.Date).getDay() === 0) ? 'disabled' : ``
                                                                     }
                                                                     defaultChecked={value.status === 'permit' ? 'checked' : ''}
+                                                                    currentstatus={value.status}
                                                                     onChange={updateAbsentSalary}
                                                                     className="form-check-input" type="radio" name={`${index}-status`} id={`${index}-permit`} value={`permit`}/>
                                                                 <label className="form-check-label" htmlFor={`${index}-permit`}>Izin</label>
@@ -153,6 +186,7 @@ const DetailAbsensi = (props) => {
                                                                     attr={dateFormatter(value.Date).getDay()}
                                                                     className="form-check-input" type="radio" name={`${index}-status`} 
                                                                     id={`${index}-absent`} value={`absent`}
+                                                                    currentstatus={value.status}
                                                                     onChange={updateAbsentSalary}
                                                                     />
                                                                 <label className="form-check-label" htmlFor={`${index}-absent`}>Off/Mangkir</label>
@@ -176,19 +210,19 @@ const DetailAbsensi = (props) => {
                                     <thead>
                                         <tr>
                                             <th style={{width: '10%'}}>Mangkir</th>
-                                            <td>{`${parseInt(detail.absent)} Hari x 8 : ${parseInt(detail.absent) * 8} Jam` }</td>
+                                            <td>{`${totalAbsent} Hari x 8 = ${totalAbsent * 8} Jam` }</td>
                                         </tr>
                                         <tr>
                                             <th style={{width: '10%'}}>Sakit</th>
-                                            <td>Tanggal</td>
+                                            <td>{`${totalSick} Hari x 8 = ${totalSick * 8} Jam` }</td>
                                         </tr>
                                         <tr>
                                             <th style={{width: '10%'}}>Izin</th>
-                                            <td>Tanggal</td>
+                                            <td>{`${totalPermit} Hari x 8 = ${totalPermit * 8} Jam` }</td>
                                         </tr>
                                         <tr>
                                             <th style={{width: '10%'}}>Lembur</th>
-                                            <td>Tanggal</td>
+                                            <td>-</td>
                                         </tr>
                                         <tr>
                                             <th style={{width: '10%'}}>Lembur Weekend</th>
